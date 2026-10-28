@@ -1,10 +1,11 @@
 
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions,status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+
 
 from .models import Patient, Doctor, PatientDoctorMapping
 from .serializers import (
@@ -86,11 +87,26 @@ class PatientMappingView(generics.ListAPIView):
 
     def get_queryset(self):
         return PatientDoctorMapping.objects.filter(
-            patient_id=self.kwargs["patient_id"],
+            patient_id=self.kwargs["identifier"],
             patient__created_by=self.request.user,
         )
 
+    def delete(self, request, *args, **kwargs):
+        mapping = PatientDoctorMapping.objects.filter(
+            patient_id=self.kwargs["identifier"],
+            patient__created_by=request.user,
+        ).first()
 
+        if mapping is None:
+            return Response(
+                {"detail": "Mapping not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        mapping.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+   
+    
 class MappingDeleteView(generics.DestroyAPIView):
     serializer_class = PatientDoctorMappingSerializer
     permission_classes = [permissions.IsAuthenticated]
