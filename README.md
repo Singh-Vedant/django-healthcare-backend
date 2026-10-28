@@ -1,29 +1,30 @@
 # Django Healthcare Backend
 
-A RESTful healthcare management API built with Django REST Framework and PostgreSQL. The application provides secure JWT-based authentication, patient management, doctor management, and patient-doctor assignments.
+A RESTful healthcare management API built with **Django, Django REST Framework, and JWT authentication**. The application supports user registration, login, patient management, doctor management, and patient–doctor mapping, with interactive API documentation using Swagger UI.
 
 ## Features
 
-- **JWT Authentication** — User registration, login, access tokens, and token refresh.
-- **Patient Management** — Create, view, update, and delete patient records.
-- **Doctor Management** — Manage doctor profiles, specializations, email addresses, and phone numbers.
-- **Patient-Doctor Assignments** — Assign doctors to patients, list assignments, and remove assignments.
-- **Access Control** — Authenticated endpoints and patient records scoped to their creator.
-- **Input Validation** — Serializer-based validation, including 10-digit patient phone numbers.
-- **API Documentation** — Interactive Swagger UI and OpenAPI schema.
-- **Automated Tests** — Tests for authentication, patient operations, validation, and other API behavior.
+- **User Authentication:** Register users and authenticate with username and password.
+- **JWT Authentication:** Secure protected endpoints using access and refresh tokens.
+- **Patient Management:** Create, retrieve, update, and delete patient records.
+- **Doctor Management:** Create, list, retrieve, update, and delete doctor records.
+- **Patient–Doctor Mapping:** Associate patients with doctors and manage these relationships.
+- **User-Specific Patient Access:** Patients are scoped to the authenticated user who created them.
+- **Input Validation:** Validate request data, including patient phone numbers.
+- **API Documentation:** Explore and test endpoints through Swagger UI.
+- **Automated Testing:** Test API functionality using Django's test framework.
 
 ## Tech Stack
 
 | Technology | Purpose |
 |---|---|
-| Python | Backend programming |
-| Django | Web framework |
+| Python | Programming language |
+| Django | Backend framework |
 | Django REST Framework | REST API development |
-| PostgreSQL | Relational database |
 | Simple JWT | Token-based authentication |
-| drf-spectacular | OpenAPI and Swagger documentation |
-| python-dotenv | Environment variable management |
+| drf-spectacular | OpenAPI schema and Swagger documentation |
+| Database | Configured through Django settings |
+| Git and GitHub | Version control and hosting |
 
 ## Project Structure
 
@@ -32,6 +33,7 @@ Django Healthcare Backend/
 ├── api/
 │   ├── migrations/
 │   ├── admin.py
+│   ├── apps.py
 │   ├── models.py
 │   ├── serializers.py
 │   ├── tests.py
@@ -39,25 +41,22 @@ Django Healthcare Backend/
 │   └── views.py
 ├── config/
 │   ├── settings.py
-│   ├── urls.py
-│   ├── asgi.py
-│   └── wsgi.py
+│   └── urls.py
+├── .env
 ├── .env.example
 ├── .gitignore
 ├── manage.py
 └── README.md
 ```
 
-## Prerequisites
+## Getting Started
 
-Install the following before starting:
+### Prerequisites
 
-- Python 3.10 or later
-- PostgreSQL
-- Git
+- Python installed on your system
 - pip
-
-## Installation and Setup
+- Git
+- VS Code or another code editor
 
 ### 1. Clone the repository
 
@@ -68,56 +67,50 @@ cd django-healthcare-backend
 
 ### 2. Create and activate a virtual environment
 
-**macOS / Linux**
+On macOS or Linux:
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-**Windows**
-
-```bash
-python -m venv .venv
-.venv\Scripts\activate
-```
-
 ### 3. Install dependencies
 
+If the repository contains a `requirements.txt` file:
+
 ```bash
-python -m pip install Django djangorestframework djangorestframework-simplejwt drf-spectacular python-dotenv "psycopg[binary]"
+python -m pip install -r requirements.txt
+```
+
+If no requirements file exists, install the project's dependencies and verify the database driver required by your settings:
+
+```bash
+python -m pip install Django djangorestframework djangorestframework-simplejwt drf-spectacular python-dotenv
 ```
 
 ### 4. Configure environment variables
 
-Create a `.env` file in the project root, alongside `manage.py`.
+Review `.env.example` and create or update your local `.env` file with the environment variables required by `config/settings.py`.
+
+For example, if your project uses environment-based configuration:
 
 ```env
-DJANGO_SECRET_KEY=replace-with-a-secure-secret-key
-DB_NAME=your_database_name
-DB_USER=your_database_user
-DB_PASSWORD=your_database_password
-DB_HOST=localhost
-DB_PORT=5432
+SECRET_KEY=replace-with-a-secure-secret-key
+DEBUG=True
 ```
 
-Replace the database values with your PostgreSQL credentials and database name. Ensure the database exists before running migrations.
+Add the appropriate database configuration if required by your project.
 
-Keep `.env` private. Never commit database credentials or secret keys to GitHub.
+**Important:** Never commit `.env`, database passwords, or production secret keys to GitHub.
 
 ### 5. Apply database migrations
 
 ```bash
+python manage.py makemigrations
 python manage.py migrate
 ```
 
-### 6. Create an administrator account (optional)
-
-```bash
-python manage.py createsuperuser
-```
-
-### 7. Run the development server
+### 6. Start the development server
 
 ```bash
 python manage.py runserver
@@ -125,190 +118,144 @@ python manage.py runserver
 
 The API will be available at:
 
-- API base URL: `http://127.0.0.1:8000/api/`
-- Swagger documentation: `http://127.0.0.1:8000/api/docs/`
-- OpenAPI schema: `http://127.0.0.1:8000/api/schema/`
-- Django admin: `http://127.0.0.1:8000/admin/`
+`http://127.0.0.1:8000/`
+
+## API Documentation
+
+Swagger UI provides an interactive interface for exploring endpoints, submitting requests, and viewing responses.
+
+- **Swagger UI:** `http://127.0.0.1:8000/api/docs/`
+- **OpenAPI Schema:** `http://127.0.0.1:8000/api/schema/`
 
 ## API Endpoints
+
+All endpoints below are prefixed with `/api/`.
 
 ### Authentication
 
 | Method | Endpoint | Description | Authentication |
 |---|---|---|---|
-| POST | `/api/auth/register/` | Register a user | Not required |
-| POST | `/api/auth/login/` | Obtain JWT tokens | Not required |
-| POST | `/api/auth/token/refresh/` | Refresh an access token | Refresh token required |
+| POST | `/auth/register/` | Register a user | Not required |
+| POST | `/auth/login/` | Authenticate and obtain JWT tokens | Not required |
+| POST | `/auth/token/refresh/` | Refresh an access token | Refresh token |
+
+**Registration request:**
+
+```json
+{
+  "name": "Vedant Singh",
+  "username": "vedant",
+  "email": "vedant@example.com",
+  "password": "SecurePass123!"
+}
+```
+
+**Login request:**
+
+```json
+{
+  "username": "vedant",
+  "password": "SecurePass123!"
+}
+```
+
+A successful login returns an access token and a refresh token.
 
 ### Patients
 
 | Method | Endpoint | Description |
 |---|---|---|
-| GET | `/api/patients/` | List your patients |
-| POST | `/api/patients/` | Create a patient |
-| GET | `/api/patients/{id}/` | Retrieve a patient |
-| PUT | `/api/patients/{id}/` | Update a patient |
-| PATCH | `/api/patients/{id}/` | Partially update a patient |
-| DELETE | `/api/patients/{id}/` | Delete a patient |
+| GET | `/patients/` | List the authenticated user's patients |
+| POST | `/patients/` | Create a patient |
+| GET | `/patients/{id}/` | Retrieve a patient |
+| PUT | `/patients/{id}/` | Replace a patient's data |
+| PATCH | `/patients/{id}/` | Partially update a patient |
+| DELETE | `/patients/{id}/` | Delete a patient |
 
-Patient records are scoped to the authenticated user who created them.
+Patient creation associates the record with the authenticated user.
 
 ### Doctors
 
 | Method | Endpoint | Description |
 |---|---|---|
-| GET | `/api/doctors/` | List doctors |
-| POST | `/api/doctors/` | Create a doctor |
-| GET | `/api/doctors/{id}/` | Retrieve a doctor |
-| PUT | `/api/doctors/{id}/` | Update a doctor |
-| PATCH | `/api/doctors/{id}/` | Partially update a doctor |
-| DELETE | `/api/doctors/{id}/` | Delete a doctor |
+| GET | `/doctors/` | List doctors |
+| POST | `/doctors/` | Create a doctor |
+| GET | `/doctors/{id}/` | Retrieve a doctor |
+| PUT | `/doctors/{id}/` | Replace a doctor's data |
+| PATCH | `/doctors/{id}/` | Partially update a doctor |
+| DELETE | `/doctors/{id}/` | Delete a doctor |
 
-### Patient-Doctor Assignments
+### Patient–Doctor Mappings
 
 | Method | Endpoint | Description |
 |---|---|---|
-| GET | `/api/mappings/` | List assignments for your patients |
-| POST | `/api/mappings/` | Assign a doctor to a patient |
-| GET | `/api/mappings/{patient_id}/` | List assignments for a specific patient |
-| DELETE | `/api/mappings/delete/{id}/` | Remove an assignment |
+| GET | `/mappings/` | List mappings accessible to the user |
+| POST | `/mappings/` | Create a patient–doctor mapping |
+| GET | `/mappings/{patient_id}/` | List mappings for a patient |
+| DELETE | `/mappings/delete/{mapping_id}/` | Delete a specific mapping |
 
-A patient and doctor pair cannot be assigned more than once.
+## JWT Authentication
 
-## Authentication
+Protected endpoints require a valid JWT access token.
 
-Protected endpoints use JWT access tokens.
+### How to authenticate
 
-1. Register using `/api/auth/register/`.
+1. Register a user using `/api/auth/register/`.
 2. Log in using `/api/auth/login/`.
 3. Copy the returned `access` token.
-4. Include it in protected requests:
+4. Open Swagger UI and select **Authorize**.
+5. Enter the access token in the format expected by the configured Bearer authentication scheme. For example:
 
-```http
-Authorization: Bearer YOUR_ACCESS_TOKEN
+```text
+Bearer YOUR_ACCESS_TOKEN
 ```
 
-When testing through Swagger UI, click **Authorize** and provide the access token in the expected format.
+6. Authorize and execute protected API requests.
 
-## Example API Requests
+When the access token expires, use `/api/auth/token/refresh/` with the refresh token to obtain a new access token.
 
-### Register a user
+## Testing
 
-`POST /api/auth/register/`
+The project includes automated API tests.
 
-```json
-{
-  "username": "healthcare_user",
-  "email": "user@example.com",
-  "password": "SecurePass123!"
-}
-```
-
-### Log in
-
-`POST /api/auth/login/`
-
-```json
-{
-  "username": "healthcare_user",
-  "password": "SecurePass123!"
-}
-```
-
-### Create a patient
-
-`POST /api/patients/`
-
-```json
-{
-  "name": "Test Patient",
-  "age": 25,
-  "gender": "Male",
-  "phone": "9876543210",
-  "address": "Delhi"
-}
-```
-
-The authenticated user is automatically assigned as the creator of the patient record.
-
-### Create a doctor
-
-`POST /api/doctors/`
-
-```json
-{
-  "name": "Dr. Priya Sharma",
-  "specialization": "Dermatology",
-  "email": "priya.sharma@example.com",
-  "phone": "9876501234"
-}
-```
-
-### Assign a doctor to a patient
-
-`POST /api/mappings/`
-
-```json
-{
-  "patient": 1,
-  "doctor": 1
-}
-```
-
-Replace the IDs with existing patient and doctor IDs accessible under your application's permissions.
-
-## Running Tests
-
-Run Django's system checks:
-
-```bash
-python manage.py check
-```
-
-Run the full test suite:
-
-```bash
-python manage.py test
-```
-
-Run tests for the API application:
+Run the full API test suite:
 
 ```bash
 python manage.py test api
 ```
 
-Validate the generated OpenAPI schema:
+Run Django system checks:
 
 ```bash
-python manage.py spectacular --validate
+python manage.py check
 ```
 
-The project previously passed **16 automated tests**. Run the commands above again after making changes to verify the current state.
+The current test suite has **16 tests**, which have passed successfully in the local development environment.
 
-## Security Notes
+## Security Considerations
 
-- Store credentials and secret keys in environment variables.
-- Do not commit `.env` files or real patient information.
-- Use a strong, unique Django secret key.
-- Disable debug mode and configure allowed hosts appropriately before production deployment.
-- Use HTTPS in production.
-- Apply appropriate authorization and access controls before exposing healthcare data.
+- Keep secret keys and credentials out of source control.
+- Use HTTPS and secure environment configuration in production.
+- Use JWT access tokens only for their intended lifetime.
+- Enforce authentication and authorization for protected resources.
+- Review patient and doctor access rules before deploying with real healthcare data.
+- Do not use Django's development server as a production server.
 
 ## Future Improvements
 
-- Frontend integration
-- Deployment to a production hosting platform
-- Expanded API and permission tests
-- Pagination, filtering, and search
-- Production monitoring and logging
+- Add role-based permissions for administrators, doctors, and patients.
+- Add pagination, filtering, and search.
+- Expand API validation and automated test coverage.
+- Configure production deployment and monitoring.
+- Add audit logging for sensitive healthcare operations.
 
 ## Author
 
 **Vedant Singh**
 
 - GitHub: [Singh-Vedant](https://github.com/Singh-Vedant)
-- Project Repository: [django-healthcare-backend](https://github.com/Singh-Vedant/django-healthcare-backend)
+- Repository: [django-healthcare-backend](https://github.com/Singh-Vedant/django-healthcare-backend)
 
 ---
 
-Built with Django REST Framework and PostgreSQL.
+*This project is intended for healthcare management API development and learning. Use appropriate security, privacy, and compliance controls before handling real patient data.*
