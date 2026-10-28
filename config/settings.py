@@ -1,5 +1,7 @@
 import os
 from dotenv import load_dotenv
+
+
 """
 Django settings for config project.
 
@@ -51,6 +53,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'api',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -150,4 +153,11 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Django Healthcare API",
+    "DESCRIPTION": "Healthcare API for patient management, doctor management, and authentication.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
 }
